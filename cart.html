@@ -273,6 +273,21 @@
             //判断有没有登录
             ly.verify().then(resp => {
                 //登录状态
+                //先把未登录状态购物车记录是否有数据
+                let cartsOld = ly.store.get("LY_CART");
+                if (cartsOld != null){
+                    //如果有数据，则把未登录购物车记录提交到后台保存
+                    ly.http.post("/cart/merge", {
+                        cartListStr: JSON.stringify(cartsOld)
+                    }).then(resp =>{
+                        this.carts = ly.store.del("LY_CART");
+                    })
+                }
+                //查询购物车
+                ly.http.get("/cart").then(resp =>{
+                    this.carts = resp.data;
+                    this.selected = this.carts;
+                }).catch()
 
             }).catch(() => {
                 //未登录状态购物车的查询
@@ -303,8 +318,11 @@
 
                 //判断有没有登录
                 ly.verify().then(resp => {
-
                     //登录状态
+                    ly.http.put("/cart",{
+                        skuId: cart.skuId,
+                        num: cart.num
+                    }).then().catch()
                 }).catch(() => {
                     //未登录状态
                     ly.store.set("LY_CART",this.carts);
@@ -318,24 +336,28 @@
                 //判断有没有登录
                 ly.verify().then(resp => {
                     //登录状态
-
+                    ly.http.put("/cart",{
+                        skuId: cart.skuId,
+                        num: cart.num
+                    }).then().catch()
                 }).catch(() => {
                     //未登录状态
                     ly.store.set("LY_CART",this.carts);
                 })
             },
-            deleteCart(index){
+            deleteCart(index) {
                 //判断有没有登录
                 ly.verify().then(resp => {
                     //登录状态
-
+                    ly.http.delete("/cart/" + this.carts[index].skuId)
+                        .then(resp => {
+                            this.carts.splice(index, 1);
+                        }).catch()
                 }).catch(() => {
                     //未登录状态
-                    this.carts.splice(index,1);
-                    ly.store.set("LY_CART",this.carts);
+                    this.carts.splice(index, 1);
+                    ly.store.set("LY_CART", this.carts);
                 })
-
-
             }
         },
         components: {
